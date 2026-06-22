@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TOEIC 단어장</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>📚 TOEIC 단어장</h1>
+    <div class="subtitle">토익 필수 어휘 학습 프로그램</div>
+  </div>
+</div>
+
+<div class="nav">
+  <button class="active" onclick="switchTab('quiz1')">단어 → 뜻</button>
+  <button onclick="switchTab('quiz2')">뜻 → 단어</button>
+  <button onclick="switchTab('wrong')">오답 노트 <span id="wrong-badge"></span></button>
+</div>
+
+<div class="container">
+  <div id="tab-quiz1" class="tab-content active">
+    <div class="quiz-controls">
+      <select id="q1-count">
+        <option value="10">10문제</option>
+        <option value="20" selected>20문제</option>
+        <option value="50">50문제</option>
+        <option value="all">전체</option>
+      </select>
+      <button onclick="startQuiz('q1')">시작</button>
+    </div>
+    <div id="q1-area"></div>
+  </div>
+
+  <div id="tab-quiz2" class="tab-content">
+    <div class="quiz-controls">
+      <select id="q2-count">
+        <option value="10">10문제</option>
+        <option value="20" selected>20문제</option>
+        <option value="50">50문제</option>
+        <option value="all">전체</option>
+      </select>
+      <button onclick="startQuiz('q2')">시작</button>
+    </div>
+    <div id="q2-area"></div>
+  </div>
+
+  <div id="tab-wrong" class="tab-content">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+      <h2 style="font-size:1.1rem; font-weight:700;">오답 단어 목록</h2>
+      <button onclick="clearWrong()" style="padding:6px 14px; background:#fee2e2; color:#991b1b; border:none; border-radius:8px; cursor:pointer; font-size:0.8rem; font-weight:600;">전체 삭제</button>
+    </div>
+    <div id="wrong-list" class="wrong-list"></div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
