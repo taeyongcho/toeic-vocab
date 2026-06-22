@@ -13,6 +13,14 @@ const WORDS = [
   {w:"revise",p:"v.",m:"수정하다, 개정하다"},{w:"schedule",p:"n./v.",m:"일정; 일정을 잡다"},{w:"submit",p:"v.",m:"제출하다"},{w:"supervise",p:"v.",m:"감독하다"},{w:"supply",p:"n./v.",m:"공급; 공급하다"},{w:"terminate",p:"v.",m:"종료하다, 해고하다"},{w:"transaction",p:"n.",m:"거래"},{w:"transition",p:"n./v.",m:"전환; 전환하다"},{w:"update",p:"v./n.",m:"업데이트하다; 최신 정보"},{w:"utilize",p:"v.",m:"활용하다, 이용하다"}
 ];
 
+function speak(text) {
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.lang = 'en-US';
+  utter.rate = 0.9;
+  speechSynthesis.cancel();
+  speechSynthesis.speak(utter);
+}
+
 let quiz = { mode:'', list:[], idx:0, score:0, answered:false };
 let wrongWords = JSON.parse(localStorage.getItem('toeic_wrong') || '{}');
 
@@ -80,7 +88,7 @@ function renderQuestion() {
       <div class="progress-text">${quiz.idx+1} / ${quiz.list.length}  ·  맞춤: ${quiz.score}</div>
       <div class="card">
         <div class="part-of-speech">${word.p}</div>
-        <div class="word">${word.w}</div>
+        <div class="word">${word.w} <button class="speak-btn" onclick="speak('${word.w}')" title="발음 듣기">🔊</button></div>
         <div class="hint">뜻을 고르세요</div>
         <div class="options">
           ${choices.map(c => `<button class="option-btn" onclick="checkQ1(this,'${c.w}','${word.w}')">${c.m}</button>`).join('')}
@@ -144,6 +152,7 @@ function checkQ2() {
     saveWrong(word);
     showFeedback(false, `오답 — 정답: ${word.w}`);
   }
+  speak(word.w);
   document.getElementById('next-btn').classList.add('show');
 }
 
@@ -181,7 +190,7 @@ function renderWrongList() {
   list.innerHTML = items.map(it => `
     <div class="wrong-item">
       <div>
-        <div class="wword">${it.w} <span style="font-size:0.75rem;color:#9ca3af;">${it.p}</span></div>
+        <div class="wword">${it.w} <span style="font-size:0.75rem;color:#9ca3af;">${it.p}</span> <button class="speak-btn" onclick="speak('${it.w}')" title="발음 듣기">🔊</button></div>
         <div class="wmean">${it.m}</div>
       </div>
       <span class="wcount">틀림 ${it.count}회</span>
