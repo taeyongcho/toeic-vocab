@@ -168,12 +168,35 @@ function checkQ2() {
 
 function showFeedback(ok, msg, word) {
   const fb = document.getElementById('fb');
-  let html = '<div class="fb-result">' + (ok ? '✅' : '❌') + ' ' + msg + '</div>';
-  if (word && word.e) {
-    html += '<div class="fb-example"><span class="fb-ex-en">' + word.e + ' <button class="speak-btn" onclick="speak('' + word.e.replace(/'/g, "'") + '')">🔊</button></span><span class="fb-ex-ko">' + (word.et || '') + '</span></div>';
-  }
-  fb.innerHTML = html;
+  fb.innerHTML = '';
   fb.className = 'feedback show ' + (ok ? 'correct' : 'wrong');
+
+  const result = document.createElement('div');
+  result.className = 'fb-result';
+  result.textContent = (ok ? '✅ ' : '❌ ') + msg;
+  fb.appendChild(result);
+
+  if (word && word.e) {
+    const ex = document.createElement('div');
+    ex.className = 'fb-example';
+
+    const en = document.createElement('span');
+    en.className = 'fb-ex-en';
+    en.textContent = word.e + ' ';
+    const btn = document.createElement('button');
+    btn.className = 'speak-btn';
+    btn.textContent = '🔊';
+    btn.onclick = () => speak(word.e);
+    en.appendChild(btn);
+
+    const ko = document.createElement('span');
+    ko.className = 'fb-ex-ko';
+    ko.textContent = word.et || '';
+
+    ex.appendChild(en);
+    ex.appendChild(ko);
+    fb.appendChild(ex);
+  }
 }
 
 function nextQ() {
