@@ -71,3 +71,50 @@ body { font-family: 'Segoe UI', sans-serif; background: #f0f4ff; color: #1a1a2e;
 .fb-example { margin-top: 10px; padding: 10px 14px; background: rgba(255,255,255,0.5); border-radius: 10px; text-align: left; border-left: 3px solid currentColor; }
 .fb-ex-en { display: block; font-size: 0.9rem; font-style: italic; margin-bottom: 4px; }
 .fb-ex-ko { display: block; font-size: 0.8rem; opacity: 0.8; }
+
+/* ===== AI 기능 UI ===== */
+.header { justify-content: space-between; }
+.settings-btn { background: rgba(255,255,255,0.2); border: none; color: white; font-size: 1.2rem; width: 40px; height: 40px; border-radius: 10px; cursor: pointer; }
+.settings-btn:hover { background: rgba(255,255,255,0.35); }
+
+.ai-btn { padding: 12px 20px; background: #4f46e5; color: white; border: none; border-radius: 10px; font-size: 0.9rem; font-weight: 700; cursor: pointer; }
+.ai-btn:hover { background: #4338ca; }
+
+.tip-btn { background: #fef3c7; border: none; cursor: pointer; font-size: 1rem; width: 32px; height: 32px; border-radius: 8px; }
+.tip-btn:hover { background: #fde68a; }
+
+.wrong-item-wrap { background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); overflow: hidden; }
+.wrong-item-wrap .wrong-item { box-shadow: none; border-radius: 0; }
+.tip-box { display: none; padding: 0 20px; }
+.tip-box.show { display: block; padding: 0 20px 14px; }
+.tip-row { font-size: 0.85rem; color: #374151; margin-top: 6px; line-height: 1.5; }
+.tip-row b { color: #6d28d9; margin-right: 6px; }
+.tip-loading { color: #9ca3af; font-size: 0.85rem; padding: 8px 0; }
+.tip-error { color: #991b1b; font-size: 0.8rem; padding: 8px 0; }
+
+.analyze-card { background: white; border-radius: 14px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin-top: 16px; }
+.analyze-summary { font-size: 0.95rem; line-height: 1.6; color: #1a1a2e; }
+.weak-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.weak-tag { background: #fee2e2; color: #991b1b; font-size: 0.75rem; font-weight: 700; padding: 4px 10px; border-radius: 99px; }
+.analyze-advice { margin-top: 12px; padding: 10px 14px; background: #ede9fe; border-radius: 10px; font-size: 0.85rem; color: #5b21b6; }
+.rec-card { background: white; border-radius: 14px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin-top: 14px; }
+.rec-card h3 { font-size: 0.95rem; font-weight: 700; margin-bottom: 8px; }
+.rec-words { font-size: 0.88rem; color: #4f46e5; font-weight: 600; line-height: 1.6; margin-bottom: 14px; }
+.ai-empty { text-align: center; color: #9ca3af; padding: 40px 20px; }
+
+/* 설정 모달 */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
+.modal-overlay.show { display: flex; }
+.modal { background: white; border-radius: 16px; padding: 24px; width: 100%; max-width: 420px; max-height: 90vh; overflow-y: auto; }
+.modal h2 { font-size: 1.2rem; margin-bottom: 8px; }
+.modal-desc { font-size: 0.82rem; color: #6b7280; line-height: 1.5; margin-bottom: 18px; }
+.field-label { display: block; font-size: 0.8rem; font-weight: 700; color: #374151; margin: 14px 0 6px; }
+.provider-tabs { display: flex; gap: 8px; }
+.provider-tab { flex: 1; padding: 10px; border: 2px solid #e5e7eb; background: #f9fafb; border-radius: 10px; cursor: pointer; font-size: 0.82rem; font-weight: 600; color: #6b7280; }
+.provider-tab.active { border-color: #4f46e5; background: #ede9fe; color: #4f46e5; }
+.key-input { width: 100%; padding: 12px 14px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 0.9rem; outline: none; }
+.key-input:focus { border-color: #4f46e5; }
+.modal-help { font-size: 0.78rem; color: #9ca3af; margin-top: 10px; line-height: 1.5; }
+.modal-actions { display: flex; gap: 10px; margin-top: 20px; }
+.modal-actions .ai-btn { flex: 1; }
+.cancel-btn { padding: 12px 20px; background: #f3f4f6; color: #374151; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; }

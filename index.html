@@ -5,20 +5,28 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TOEIC 단어장</title>
 <link rel="stylesheet" href="style.css">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#4f46e5">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="TOEIC단어">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 </head>
 <body>
 
 <div class="header">
   <div>
     <h1>📚 TOEIC 단어장</h1>
-    <div class="subtitle">토익 필수 어휘 학습 프로그램</div>
+    <div class="subtitle">AI 토익 어휘 학습</div>
   </div>
+  <button class="settings-btn" onclick="openSettings()" title="AI 설정">⚙️</button>
 </div>
 
 <div class="nav">
   <button class="active" onclick="switchTab('quiz1')">단어 → 뜻</button>
   <button onclick="switchTab('quiz2')">뜻 → 단어</button>
-  <button onclick="switchTab('wrong')">오답 노트 <span id="wrong-badge"></span></button>
+  <button onclick="switchTab('wrong')">오답 <span id="wrong-badge"></span></button>
+  <button onclick="switchTab('ai')">🤖 AI분석</button>
 </div>
 
 <div class="container">
@@ -55,8 +63,48 @@
     </div>
     <div id="wrong-list" class="wrong-list"></div>
   </div>
+
+  <div id="tab-ai" class="tab-content">
+    <h2 style="font-size:1.1rem; font-weight:700; margin-bottom:6px;">🤖 AI 약점 분석</h2>
+    <p style="font-size:0.85rem; color:#6b7280; margin-bottom:16px;">오답 노트를 분석해 약점을 진단하고 집중 복습 단어를 추천합니다.</p>
+    <button class="ai-btn" onclick="runAnalyze()">분석하기</button>
+    <div id="ai-result"></div>
+  </div>
 </div>
 
+<!-- AI 설정 모달 -->
+<div id="settings-modal" class="modal-overlay" onclick="if(event.target===this)closeSettings()">
+  <div class="modal">
+    <h2>⚙️ AI 설정</h2>
+    <p class="modal-desc">AI 기능(암기 도우미, 약점 분석)을 쓰려면 본인의 API 키가 필요합니다. 키는 이 기기에만 저장되며 외부로 전송되지 않습니다.</p>
+
+    <label class="field-label">제공자</label>
+    <div class="provider-tabs">
+      <button id="prov-anthropic" class="provider-tab" onclick="selectProvider('anthropic')">Anthropic (Claude)</button>
+      <button id="prov-github" class="provider-tab" onclick="selectProvider('github')">GitHub (무료)</button>
+    </div>
+
+    <label class="field-label">API 키</label>
+    <input id="api-key-input" class="key-input" type="password" placeholder="키를 붙여넣으세요">
+
+    <label class="field-label">모델 (비워두면 기본값)</label>
+    <input id="model-input" class="key-input" type="text" placeholder="기본값 사용">
+
+    <div class="modal-help" id="provider-help"></div>
+
+    <div class="modal-actions">
+      <button class="ai-btn" onclick="saveSettings()">저장</button>
+      <button class="cancel-btn" onclick="closeSettings()">닫기</button>
+    </div>
+  </div>
+</div>
+
+<script src="ai.js"></script>
 <script src="app.js"></script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(()=>{}));
+}
+</script>
 </body>
 </html>

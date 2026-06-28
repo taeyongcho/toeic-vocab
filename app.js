@@ -59,7 +59,7 @@ function switchTab(name) {
   document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.nav button').forEach(el => el.classList.remove('active'));
   document.getElementById('tab-'+name).classList.add('active');
-  const idx = ['quiz1','quiz2','wrong'].indexOf(name);
+  const idx = ['quiz1','quiz2','wrong','ai'].indexOf(name);
   document.querySelectorAll('.nav button')[idx].classList.add('active');
   if (name === 'wrong') renderWrongList();
 }
@@ -225,13 +225,116 @@ function renderWrongList() {
     return;
   }
   list.innerHTML = items.map(it => `
-    <div class="wrong-item">
-      <div>
-        <div class="wword">${it.w} <span style="font-size:0.75rem;color:#9ca3af;">${it.p}</span> <button class="speak-btn" onclick="speak('${it.w}')" title="발음 듣기">🔊</button></div>
-        <div class="wmean">${it.m}</div>
+    <div class="wrong-item-wrap">
+      <div class="wrong-item">
+        <div>
+          <div class="wword">${it.w} <span style="font-size:0.75rem;color:#9ca3af;">${it.p}</span> <button class="speak-btn" onclick="speak('${it.w}')" title="발음 듣기">🔊</button></div>
+          <div class="wmean">${it.m}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="wcount">틀림 ${it.count}회</span>
+          <button class="tip-btn" onclick="showTipFor('${it.w}')" title="AI 암기 도우미">💡</button>
+        </div>
       </div>
-      <span class="wcount">틀림 ${it.count}회</span>
+      <div class="tip-box" id="tip-${it.w}"></div>
     </div>`).join('');
+}
+
+// ===== AI 암기 도우미 =====
+async function showTipFor(wKey) {
+  if (typeof hasAIKey === 'function' && !hasAIKey()) { openSettings(); return; }
+  const box = document.getElementById('tip-' + wKey);
+  if (!box) return;
+  if (box.classList.contains('show')) { box.classList.remove('show'); box.innerHTML = ''; return; }
+  const word = WORDS.find(w => w.w === wKey) || wrongWords[wKey];
+  box.classList.add('show');
+  box.innerHTML = '<div class="tip-loading">AI가 암기 팁을 생각하는 중...</div>';
+  try {
+    const tip = await aiTip(word);
+    let html = '';
+    if (tip.origin)  html += `<div class="tip-row"><b>어원</b> ${tip.origin}</div>`;
+    if (tip.memory)  html += `<div class="tip-row"><b>연상</b> ${tip.memory}</div>`;
+    if (tip.confuse) html += `<div class="tip-row"><b>혼동</b> ${tip.confuse}</div>`;
+    box.innerHTML = html || '팁을 가져오지 못했습니다.';
+  } catch (e) {
+    box.innerHTML = '<div class="tip-error">' + e.message + '</div>';
+  }
+}
+
+// ===== AI 약점 분석 =====
+async function runAnalyze() {
+  if (typeof hasAIKey === 'function' && !hasAIKey()) { openSettings(); return; }
+  const out = document.getElementById('ai-result');
+  const items = Object.values(wrongWords);
+  if (items.length < 3) {
+    out.innerHTML = '<div class="ai-empty">분석하려면 오답이 최소 3개 필요해요. 퀴즈를 더 풀어보세요!</div>';
+    return;
+  }
+  out.innerHTML = '<div class="tip-loading">AI가 오답을 분석하는 중...</div>';
+  try {
+    const wrong = items.map(it => ({ w: it.w, p: it.p, m: it.m, count: it.count }));
+    const res = await aiAnalyze(wrong, WORDS);
+    let html = `<div class="analyze-card">
+      <div class="analyze-summary">${res.summary || ''}</div>`;
+    if (res.weaknesses && res.weaknesses.length)
+      html += `<div class="weak-tags">${res.weaknesses.map(w => `<span class="weak-tag">${w}</span>`).join('')}</div>`;
+    if (res.advice) html += `<div class="analyze-advice">💬 ${res.advice}</div>`;
+    html += `</div>`;
+    if (res.recommend && res.recommend.length) {
+      const recWords = res.recommend.map(w => WORDS.find(x => x.w.toLowerCase() === String(w).toLowerCase())).filter(Boolean);
+      window._recWords = recWords;
+      html += `<div class="rec-card">
+        <h3>📌 집중 복습 추천 (${recWords.length}개)</h3>
+        <div class="rec-words">${recWords.map(w => w.w).join(', ')}</div>
+        <button class="ai-btn" onclick="startRecQuiz()">추천 단어로 퀴즈 시작</button>
+      </div>`;
+    }
+    out.innerHTML = html;
+  } catch (e) {
+    out.innerHTML = '<div class="tip-error">' + e.message + '</div>';
+  }
+}
+
+function startRecQuiz() {
+  const list = window._recWords;
+  if (!list || !list.length) return;
+  switchTab('quiz1');
+  quiz = { mode: 'q1', list: shuffle(list), idx: 0, score: 0, answered: false };
+  renderQuestion();
+}
+
+// ===== AI 설정 모달 =====
+let _selectedProvider = 'anthropic';
+
+function openSettings() {
+  const cfg = getAICfg();
+  _selectedProvider = cfg.provider || 'anthropic';
+  selectProvider(_selectedProvider);
+  document.getElementById('api-key-input').value = cfg.key || '';
+  document.getElementById('model-input').value = cfg.model || '';
+  document.getElementById('settings-modal').classList.add('show');
+}
+function closeSettings() {
+  document.getElementById('settings-modal').classList.remove('show');
+}
+function selectProvider(p) {
+  _selectedProvider = p;
+  document.getElementById('prov-anthropic').classList.toggle('active', p === 'anthropic');
+  document.getElementById('prov-github').classList.toggle('active', p === 'github');
+  const help = document.getElementById('provider-help');
+  if (p === 'anthropic') {
+    help.innerHTML = 'console.anthropic.com/settings/keys 에서 발급 (유료). 기본 모델: claude-haiku-4-5';
+  } else {
+    help.innerHTML = 'github.com/settings/tokens 에서 발급한 토큰 (무료, 호출 제한 있음). 기본 모델: openai/gpt-4o-mini';
+  }
+}
+function saveSettings() {
+  const key = document.getElementById('api-key-input').value.trim();
+  const model = document.getElementById('model-input').value.trim();
+  if (!key) { alert('API 키를 입력하세요.'); return; }
+  saveAICfg({ provider: _selectedProvider, key, model });
+  closeSettings();
+  alert('저장됐어요! 이제 💡 암기 도우미와 🤖 AI 분석을 쓸 수 있습니다.');
 }
 
 updateWrongBadge();
