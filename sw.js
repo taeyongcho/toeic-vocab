@@ -1,11 +1,12 @@
 // 간단한 오프라인 캐시 (앱 셸)
-const CACHE = 'toeic-voca-v1';
+const CACHE = 'toeic-voca-v2';
 const ASSETS = [
   './',
   './index.html',
   './style.css',
   './app.js',
   './ai.js',
+  './srs.js',
   './icon-192.png',
   './icon-512.png',
 ];

@@ -58,10 +58,13 @@ function clearWrong() {
 function switchTab(name) {
   document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.nav button').forEach(el => el.classList.remove('active'));
-  document.getElementById('tab-'+name).classList.add('active');
-  const idx = ['quiz1','quiz2','wrong','ai'].indexOf(name);
-  document.querySelectorAll('.nav button')[idx].classList.add('active');
+  const tab = document.getElementById('tab-'+name);
+  if (tab) tab.classList.add('active');
+  const btn = document.querySelector('.nav button[data-tab="'+name+'"]');
+  if (btn) { btn.classList.add('active'); btn.scrollIntoView({inline:'center', block:'nearest'}); }
   if (name === 'wrong') renderWrongList();
+  if (name === 'home') renderDashboard();
+  if (name === 'stats') renderStats();
 }
 
 function shuffle(arr) {
@@ -73,17 +76,23 @@ function shuffle(arr) {
   return a;
 }
 
-function startQuiz(mode) {
-  const selectId = mode === 'q1' ? 'q1-count' : 'q2-count';
-  const countVal = document.getElementById(selectId).value;
+function startWordQuiz() {
+  const mode = document.getElementById('word-mode').value;
+  const countVal = document.getElementById('word-count').value;
   let list = shuffle(WORDS);
   if (countVal !== 'all') list = list.slice(0, parseInt(countVal));
-  quiz = { mode, list, idx:0, score:0, answered:false };
+  quiz = { mode, list, idx:0, score:0, answered:false, area:'word-area' };
+  renderQuestion();
+}
+
+// 대시보드/추천에서 특정 단어 목록으로 퀴즈 시작
+function startQuiz(mode, list, area) {
+  quiz = { mode, list: shuffle(list), idx:0, score:0, answered:false, area: area || 'word-area' };
   renderQuestion();
 }
 
 function renderQuestion() {
-  const area = document.getElementById(quiz.mode+'-area');
+  const area = document.getElementById(quiz.area || (quiz.mode+'-area'));
   if (quiz.idx >= quiz.list.length) { renderResult(area); return; }
 
   const word = quiz.list[quiz.idx];
@@ -134,11 +143,13 @@ function checkQ1(btn, chosen, correct) {
   if (chosen === correct) {
     btn.classList.add('correct');
     quiz.score++;
+    srsRecord(word, true);
     showFeedback(true, '정답!', word);
   } else {
     btn.classList.add('wrong');
     btns.forEach(b => { if (b.textContent === word.m) b.classList.add('correct'); });
     saveWrong(word);
+    srsRecord(word, false);
     showFeedback(false, '오답 — 정답: ' + word.m, word);
   }
   document.getElementById('next-btn').classList.add('show');
@@ -157,9 +168,11 @@ function checkQ2() {
   const word = quiz.list[quiz.idx];
   if (val === word.w.toLowerCase()) {
     quiz.score++;
+    srsRecord(word, true);
     showFeedback(true, '정답!', word);
   } else {
     saveWrong(word);
+    srsRecord(word, false);
     showFeedback(false, '오답 — 정답: ' + word.w, word);
   }
   speak(word.w);
@@ -213,7 +226,7 @@ function renderResult(area) {
       <div style="font-size:3rem;">${emoji}</div>
       <div class="score">${quiz.score} / ${quiz.list.length}</div>
       <p>정답률 ${pct}%</p>
-      <button onclick="startQuiz('${quiz.mode}')">다시 하기</button>
+      <button onclick="switchTab('home')">홈으로</button>
     </div>`;
 }
 
@@ -298,9 +311,8 @@ async function runAnalyze() {
 function startRecQuiz() {
   const list = window._recWords;
   if (!list || !list.length) return;
-  switchTab('quiz1');
-  quiz = { mode: 'q1', list: shuffle(list), idx: 0, score: 0, answered: false };
-  renderQuestion();
+  switchTab('word');
+  startQuiz('q1', list, 'word-area');
 }
 
 // ===== AI 설정 모달 =====
@@ -337,4 +349,217 @@ function saveSettings() {
   alert('저장됐어요! 이제 💡 암기 도우미와 🤖 AI 분석을 쓸 수 있습니다.');
 }
 
+// ===== 홈 대시보드 =====
+function renderDashboard() {
+  const el = document.getElementById('dashboard');
+  const st = getStats();
+  const sm = srsSummary();
+  const done = todayCount();
+  const goal = st.goal || 20;
+  const goalPct = Math.min(100, Math.round(done / goal * 100));
+  const masterPct = Math.round(sm.mastered / sm.total * 100);
+
+  el.innerHTML = `
+    <div class="dash-top">
+      <div class="streak-box">
+        <div class="streak-num">🔥 ${st.streak || 0}</div>
+        <div class="streak-label">연속 학습일</div>
+      </div>
+      <div class="goal-ring" style="--pct:${goalPct}">
+        <div class="goal-inner">
+          <div class="goal-done">${done}/${goal}</div>
+          <div class="goal-label">오늘 목표</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="dash-review card-flat">
+      <div>
+        <div class="dr-title">📅 오늘 복습할 단어</div>
+        <div class="dr-count">${sm.due}개 대기 중</div>
+      </div>
+      <button class="ai-btn" ${sm.due ? '' : 'disabled'} onclick="startReview()">복습 시작</button>
+    </div>
+
+    <div class="dash-actions">
+      <button class="dash-card" onclick="startNewWords()">
+        <div class="dc-emoji">🆕</div><div class="dc-t">새 단어 학습</div><div class="dc-s">${sm.fresh}개 남음</div>
+      </button>
+      <button class="dash-card" onclick="switchTab('grammar')">
+        <div class="dc-emoji">📝</div><div class="dc-t">Part5 문법</div><div class="dc-s">AI 문제</div>
+      </button>
+      <button class="dash-card" onclick="switchTab('listen')">
+        <div class="dc-emoji">🎧</div><div class="dc-t">듣기 받아쓰기</div><div class="dc-s">청해 훈련</div>
+      </button>
+      <button class="dash-card" onclick="switchTab('ai')">
+        <div class="dc-emoji">🤖</div><div class="dc-t">AI 약점분석</div><div class="dc-s">맞춤 진단</div>
+      </button>
+    </div>
+
+    <div class="mastery-bar-wrap card-flat">
+      <div class="mb-top"><span>단어 숙달도</span><span>${sm.mastered} / ${sm.total} (${masterPct}%)</span></div>
+      <div class="mb-track"><div class="mb-fill" style="width:${masterPct}%"></div></div>
+      <div class="mb-sub">학습 시작 ${sm.studied}개 · 숙달 ${sm.mastered}개</div>
+    </div>`;
+}
+
+function startReview() {
+  const due = getDueWords();
+  if (!due.length) return;
+  switchTab('word');
+  startQuiz('q1', due, 'word-area');
+}
+function startNewWords() {
+  const fresh = getNewWords(20);
+  if (!fresh.length) { alert('모든 단어를 학습했어요! 복습에 집중하세요 🎉'); return; }
+  switchTab('word');
+  startQuiz('q1', fresh, 'word-area');
+}
+
+// ===== 듣기(받아쓰기) =====
+function startListen() {
+  const n = parseInt(document.getElementById('listen-count').value);
+  const list = shuffle(WORDS).slice(0, n);
+  quiz = { mode: 'listen', list, idx:0, score:0, answered:false, area:'listen-area' };
+  renderListen();
+}
+function renderListen() {
+  const area = document.getElementById('listen-area');
+  if (quiz.idx >= quiz.list.length) { renderResult(area); return; }
+  const word = quiz.list[quiz.idx];
+  const pct = Math.round((quiz.idx / quiz.list.length) * 100);
+  area.innerHTML = `
+    <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+    <div class="progress-text">${quiz.idx+1} / ${quiz.list.length}  ·  맞춤: ${quiz.score}</div>
+    <div class="card">
+      <button class="big-speak" onclick="speak('${word.w}')">🔊</button>
+      <div class="hint">들리는 단어를 입력하세요</div>
+      <div class="type-input-wrap">
+        <input class="type-input" id="listen-input" placeholder="영어로 입력..." autocomplete="off" onkeydown="if(event.key==='Enter')checkListen()">
+        <button class="submit-btn" onclick="checkListen()">확인</button>
+      </div>
+      <div class="feedback" id="fb"></div>
+      <button class="next-btn" id="next-btn" onclick="nextListen()">다음 →</button>
+    </div>`;
+  setTimeout(() => { document.getElementById('listen-input')?.focus(); speak(word.w); }, 100);
+}
+function checkListen() {
+  if (quiz.answered) return;
+  const input = document.getElementById('listen-input');
+  const val = input.value.trim().toLowerCase();
+  if (!val) return;
+  quiz.answered = true;
+  input.disabled = true;
+  const word = quiz.list[quiz.idx];
+  const ok = val === word.w.toLowerCase();
+  if (ok) { quiz.score++; srsRecord(word, true); showFeedback(true, '정답! ' + word.w + ' (' + word.m + ')', word); }
+  else { saveWrong(word); srsRecord(word, false); showFeedback(false, '오답 — 정답: ' + word.w + ' (' + word.m + ')', word); }
+  document.getElementById('next-btn').classList.add('show');
+}
+function nextListen() { quiz.idx++; quiz.answered = false; renderListen(); }
+
+// ===== Part5 문법 =====
+let grammarQuiz = { list:[], idx:0, score:0, answered:false };
+async function startGrammar() {
+  if (typeof hasAIKey === 'function' && !hasAIKey()) { openSettings(); return; }
+  const area = document.getElementById('grammar-area');
+  area.innerHTML = '<div class="tip-loading">AI가 Part5 문제를 만드는 중... (10초 정도)</div>';
+  try {
+    const targets = shuffle(WORDS).slice(0, 5).map(w => ({ w: w.w, p: w.p, m: w.m }));
+    const qs = await aiGrammar(targets, 5);
+    if (!qs.length) { area.innerHTML = '<div class="tip-error">문제를 생성하지 못했어요. 다시 시도해주세요.</div>'; return; }
+    grammarQuiz = { list: qs, idx:0, score:0, answered:false };
+    renderGrammar();
+  } catch (e) {
+    area.innerHTML = '<div class="tip-error">' + e.message + '</div>';
+  }
+}
+function renderGrammar() {
+  const area = document.getElementById('grammar-area');
+  const q = grammarQuiz;
+  if (q.idx >= q.list.length) {
+    const pct = Math.round(q.score / q.list.length * 100);
+    area.innerHTML = `<div class="result-card"><div style="font-size:3rem;">${pct>=80?'🎉':pct>=60?'👍':'📖'}</div>
+      <div class="score">${q.score} / ${q.list.length}</div><p>정답률 ${pct}%</p>
+      <button onclick="startGrammar()">새 문제 5개</button></div>`;
+    return;
+  }
+  const item = q.list[q.idx];
+  const choices = shuffle(item.choices || []);
+  const sentence = (item.q || '').replace(/____+/, '<span class="blank">____</span>');
+  area.innerHTML = `
+    <div class="progress-text" style="margin-top:16px;">${q.idx+1} / ${q.list.length}  ·  맞춤: ${q.score}</div>
+    <div class="card" style="min-height:auto;">
+      <div class="gram-q">${sentence}</div>
+      <div class="options">
+        ${choices.map(c => `<button class="option-btn" onclick="checkGrammar(this,${JSON.stringify(c).replace(/"/g,'&quot;')})">${c}</button>`).join('')}
+      </div>
+      <div class="feedback" id="fb"></div>
+      <button class="next-btn" id="next-btn" onclick="nextGrammar()">다음 →</button>
+    </div>`;
+}
+function checkGrammar(btn, chosen) {
+  const q = grammarQuiz;
+  if (q.answered) return;
+  q.answered = true;
+  const item = q.list[q.idx];
+  const btns = btn.parentElement.querySelectorAll('.option-btn');
+  btns.forEach(b => b.disabled = true);
+  const ok = String(chosen).trim() === String(item.answer).trim();
+  if (ok) { btn.classList.add('correct'); q.score++; }
+  else {
+    btn.classList.add('wrong');
+    btns.forEach(b => { if (b.textContent === String(item.answer)) b.classList.add('correct'); });
+  }
+  const fb = document.getElementById('fb');
+  fb.className = 'feedback show ' + (ok ? 'correct' : 'wrong');
+  fb.innerHTML = `<div class="fb-result">${ok?'✅ 정답!':'❌ 정답: '+item.answer}</div>
+    <div class="fb-example"><span class="fb-ex-en">💡 ${item.point||''}</span><span class="fb-ex-ko">${item.trans||''}</span></div>`;
+  document.getElementById('next-btn').classList.add('show');
+}
+function nextGrammar() { grammarQuiz.idx++; grammarQuiz.answered = false; renderGrammar(); }
+
+// ===== 통계 =====
+function renderStats() {
+  const area = document.getElementById('stats-area');
+  const st = getStats();
+  const sm = srsSummary();
+  const days = last7days();
+  const maxC = Math.max(1, ...days.map(d => d.count));
+  area.innerHTML = `
+    <h2 style="font-size:1.1rem;font-weight:700;margin-bottom:16px;">📊 학습 통계</h2>
+    <div class="stat-grid">
+      <div class="stat-cell"><div class="sc-num">🔥 ${st.streak||0}</div><div class="sc-lbl">연속 학습일</div></div>
+      <div class="stat-cell"><div class="sc-num">${sm.studied}</div><div class="sc-lbl">학습한 단어</div></div>
+      <div class="stat-cell"><div class="sc-num">${sm.mastered}</div><div class="sc-lbl">숙달 단어</div></div>
+      <div class="stat-cell"><div class="sc-num">${sm.due}</div><div class="sc-lbl">복습 대기</div></div>
+    </div>
+    <div class="card-flat" style="margin-top:16px;">
+      <div class="mb-top"><span>최근 7일 학습량</span></div>
+      <div class="bar-chart">
+        ${days.map(d => `<div class="bar-col">
+          <div class="bar" style="height:${Math.round(d.count/maxC*80)}px" title="${d.count}개"></div>
+          <div class="bar-n">${d.count||''}</div>
+          <div class="bar-l">${d.label}</div>
+        </div>`).join('')}
+      </div>
+    </div>
+    <div class="card-flat goal-setter">
+      <span>일일 목표</span>
+      <div>
+        <button onclick="changeGoal(-5)">−</button>
+        <b id="goal-val">${st.goal||20}</b>
+        <button onclick="changeGoal(5)">＋</button>
+      </div>
+    </div>`;
+}
+function changeGoal(d) {
+  const st = getStats();
+  const g = Math.max(5, (st.goal||20) + d);
+  setGoal(g);
+  document.getElementById('goal-val').textContent = g;
+  renderDashboard();
+}
+
 updateWrongBadge();
+renderDashboard();

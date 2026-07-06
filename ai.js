@@ -79,6 +79,21 @@ JSON만 출력.`;
   return extractJSON(text) || { origin: '', memory: text, confuse: '' };
 }
 
+// ===== 기능 3: Part5 문법 문제 생성 =====
+async function aiGrammar(targetWords, n) {
+  const prompt = `토익 Part5(단문 빈칸) 문제 ${n}개를 만들어주세요.
+아래 단어들을 정답으로 활용하되, 어형변화/품사자리/전치사/접속사 등 문법 포인트를 섞으세요:
+${JSON.stringify(targetWords)}
+
+각 문제는 한국어가 아닌 영어 문장, 빈칸은 "____"로 표시.
+JSON 배열로:
+[{"q":"영어 문장에 ____ 포함","choices":["A","B","C","D"],"answer":"정답(choices 중 하나와 정확히 일치)","point":"문법 포인트(한국어 한 줄)","trans":"문장 한국어 해석"}]
+choices는 4개, 그럴듯한 오답 포함. JSON만 출력.`;
+  const text = await callAI(prompt, 2500);
+  const arr = extractJSON(text);
+  return Array.isArray(arr) ? arr : [];
+}
+
 // ===== 기능 2: 오답 분석 + 맞춤 추천 =====
 async function aiAnalyze(wrongList, pool) {
   const poolWords = pool.map(w => w.w);

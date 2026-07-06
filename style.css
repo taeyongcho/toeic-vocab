@@ -118,3 +118,59 @@ body { font-family: 'Segoe UI', sans-serif; background: #f0f4ff; color: #1a1a2e;
 .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
 .modal-actions .ai-btn { flex: 1; }
 .cancel-btn { padding: 12px 20px; background: #f3f4f6; color: #374151; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; }
+
+/* ===== 네비 스크롤 ===== */
+.nav { overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+.nav::-webkit-scrollbar { display: none; }
+.nav button { flex: 0 0 auto; white-space: nowrap; padding: 14px 14px; }
+
+/* ===== 대시보드 ===== */
+.dash-top { display: flex; gap: 12px; margin-bottom: 16px; }
+.streak-box { flex: 1; background: linear-gradient(135deg,#f59e0b,#ef4444); color: white; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; justify-content: center; }
+.streak-num { font-size: 2rem; font-weight: 800; }
+.streak-label { font-size: 0.8rem; opacity: 0.9; margin-top: 4px; }
+.goal-ring { flex: 1; background: white; border-radius: 16px; display: flex; align-items: center; justify-content: center; min-height: 96px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+.goal-ring .goal-inner { width: 96px; height: 96px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: radial-gradient(closest-side, white 76%, transparent 77%), conic-gradient(#4f46e5 calc(var(--pct)*1%), #e5e7eb 0); }
+.goal-inner { text-align: center; }
+.goal-done { font-size: 1.4rem; font-weight: 800; color: #4f46e5; }
+.goal-label { font-size: 0.72rem; color: #9ca3af; }
+
+.card-flat { background: white; border-radius: 14px; padding: 16px 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+.dash-review { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.dr-title { font-size: 0.9rem; font-weight: 700; }
+.dr-count { font-size: 0.8rem; color: #6b7280; margin-top: 2px; }
+
+.dash-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+.dash-card { background: white; border: none; border-radius: 14px; padding: 16px; text-align: center; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+.dash-card:hover { background: #f5f3ff; }
+.dc-emoji { font-size: 1.6rem; }
+.dc-t { font-size: 0.88rem; font-weight: 700; margin-top: 6px; }
+.dc-s { font-size: 0.72rem; color: #9ca3af; margin-top: 2px; }
+
+.mastery-bar-wrap .mb-top { display: flex; justify-content: space-between; font-size: 0.82rem; font-weight: 600; color: #374151; margin-bottom: 8px; }
+.mb-track { background: #e5e7eb; border-radius: 99px; height: 10px; overflow: hidden; }
+.mb-fill { background: linear-gradient(90deg,#4f46e5,#7c3aed); height: 100%; border-radius: 99px; transition: width .4s; }
+.mb-sub { font-size: 0.75rem; color: #9ca3af; margin-top: 8px; }
+
+/* 듣기 */
+.big-speak { font-size: 3rem; background: none; border: none; cursor: pointer; margin-bottom: 8px; }
+.big-speak:hover { transform: scale(1.1); }
+
+/* 문법 */
+.gram-q { font-size: 1.05rem; line-height: 1.7; color: #1a1a2e; margin-bottom: 18px; text-align: left; width: 100%; }
+.gram-q .blank { color: #4f46e5; font-weight: 800; letter-spacing: 1px; }
+
+/* 통계 */
+.stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.stat-cell { background: white; border-radius: 14px; padding: 18px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+.sc-num { font-size: 1.6rem; font-weight: 800; color: #4f46e5; }
+.sc-lbl { font-size: 0.75rem; color: #9ca3af; margin-top: 4px; }
+.bar-chart { display: flex; align-items: flex-end; justify-content: space-between; height: 110px; gap: 6px; padding-top: 10px; }
+.bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; }
+.bar { width: 60%; background: linear-gradient(180deg,#7c3aed,#4f46e5); border-radius: 6px 6px 0 0; min-height: 3px; }
+.bar-n { font-size: 0.7rem; color: #6b7280; margin-top: 3px; }
+.bar-l { font-size: 0.72rem; color: #9ca3af; margin-top: 2px; }
+.goal-setter { display: flex; align-items: center; justify-content: space-between; margin-top: 14px; font-size: 0.9rem; font-weight: 600; }
+.goal-setter > div { display: flex; align-items: center; gap: 14px; }
+.goal-setter button { width: 32px; height: 32px; border: none; background: #ede9fe; color: #4f46e5; border-radius: 8px; font-size: 1.1rem; font-weight: 700; cursor: pointer; }
+.goal-setter b { font-size: 1.1rem; color: #4f46e5; min-width: 28px; text-align: center; }
