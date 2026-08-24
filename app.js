@@ -136,7 +136,7 @@ function renderQuestion() {
       <div class="progress-text">${quiz.idx+1} / ${quiz.list.length}  ·  맞춤: ${quiz.score}</div>
       <div class="card">
         <div class="part-of-speech">${word.p}</div>
-        <div class="word">${word.w} <button class="speak-btn" onclick="speak('${word.w}')" title="발음 듣기">🔊</button></div>
+        <div class="word">${word.w} <button class="speak-btn" onclick="speak('${word.w}')" title="발음 듣기">${icon('speaker')}</button></div>
         <div class="hint">뜻을 고르세요</div>
         <div class="options">
           ${choices.map(c => `<button class="option-btn" onclick="checkQ1(this,'${c.w}','${word.w}')">${c.m}</button>`).join('')}
@@ -227,7 +227,7 @@ function showFeedback(ok, msg, word) {
     en.textContent = word.e + ' ';
     const btn = document.createElement('button');
     btn.className = 'speak-btn';
-    btn.textContent = '🔊';
+    btn.innerHTML = icon('speaker');
     btn.onclick = () => speak(word.e);
     en.appendChild(btn);
 
@@ -263,19 +263,19 @@ function renderWrongList() {
   const list = document.getElementById('wrong-list');
   const items = Object.values(wrongWords).sort((a,b) => b.count - a.count);
   if (items.length === 0) {
-    list.innerHTML = `<div class="empty-state"><div class="icon">🎯</div><div>오답 단어가 없어요!<br>퀴즈를 풀면 틀린 단어가 여기 쌓여요.</div></div>`;
+    list.innerHTML = `<div class="empty-state"><div class="icon">${icon('target','ic-xl')}</div><div>오답 단어가 없어요!<br>퀴즈를 풀면 틀린 단어가 여기 쌓여요.</div></div>`;
     return;
   }
   list.innerHTML = items.map(it => `
     <div class="wrong-item-wrap">
       <div class="wrong-item">
         <div>
-          <div class="wword">${it.w} <span style="font-size:0.75rem;color:#9ca3af;">${it.p}</span> <button class="speak-btn" onclick="speak('${it.w}')" title="발음 듣기">🔊</button></div>
+          <div class="wword">${it.w} <span style="font-size:0.75rem;color:#9ca3af;">${it.p}</span> <button class="speak-btn" onclick="speak('${it.w}')" title="발음 듣기">${icon('speaker')}</button></div>
           <div class="wmean">${it.m}</div>
         </div>
         <div style="display:flex;align-items:center;gap:8px;">
           <span class="wcount">틀림 ${it.count}회</span>
-          <button class="tip-btn" onclick="showTipFor('${it.w}')" title="AI 암기 도우미">💡</button>
+          <button class="tip-btn" onclick="showTipFor('${it.w}')" title="AI 암기 도우미">${icon('bulb')}</button>
         </div>
       </div>
       <div class="tip-box" id="tip-${it.w}"></div>
@@ -320,13 +320,13 @@ async function runAnalyze() {
       <div class="analyze-summary">${res.summary || ''}</div>`;
     if (res.weaknesses && res.weaknesses.length)
       html += `<div class="weak-tags">${res.weaknesses.map(w => `<span class="weak-tag">${w}</span>`).join('')}</div>`;
-    if (res.advice) html += `<div class="analyze-advice">💬 ${res.advice}</div>`;
+    if (res.advice) html += `<div class="analyze-advice">${icon('chat')} ${res.advice}</div>`;
     html += `</div>`;
     if (res.recommend && res.recommend.length) {
       const recWords = res.recommend.map(w => WORDS.find(x => x.w.toLowerCase() === String(w).toLowerCase())).filter(Boolean);
       window._recWords = recWords;
       html += `<div class="rec-card">
-        <h3>📌 집중 복습 추천 (${recWords.length}개)</h3>
+        <h3>${icon('target','ic-blue')} 집중 복습 추천 (${recWords.length}개)</h3>
         <div class="rec-words">${recWords.map(w => w.w).join(', ')}</div>
         <button class="ai-btn" onclick="startRecQuiz()">추천 단어로 퀴즈 시작</button>
       </div>`;
@@ -391,7 +391,7 @@ function renderDashboard() {
   el.innerHTML = `
     <div class="dash-top">
       <div class="streak-box">
-        <div class="streak-num">🔥 ${st.streak || 0}</div>
+        <div class="streak-num">${icon('flame','ic-flame')} ${st.streak || 0}</div>
         <div class="streak-label">연속 학습일</div>
       </div>
       <div class="goal-ring" style="--pct:${goalPct}">
@@ -404,7 +404,7 @@ function renderDashboard() {
 
     <div class="dash-review card-flat">
       <div>
-        <div class="dr-title">📅 오늘 복습할 단어</div>
+        <div class="dr-title">${icon('calendar','ic-green')} 오늘 복습할 단어</div>
         <div class="dr-count">${sm.due}개 대기 중</div>
       </div>
       <button class="ai-btn" ${sm.due ? '' : 'disabled'} onclick="startReview()">복습 시작</button>
@@ -412,16 +412,16 @@ function renderDashboard() {
 
     <div class="dash-actions">
       <button class="dash-card" onclick="startNewWords()">
-        <div class="dc-emoji">🆕</div><div class="dc-t">새 단어 학습</div><div class="dc-s">${sm.fresh}개 남음</div>
+        <div class="dc-emoji ic-green">${icon('star','dc-ic')}</div><div class="dc-t">새 단어 학습</div><div class="dc-s">${sm.fresh}개 남음</div>
       </button>
       <button class="dash-card" onclick="switchTab('grammar')">
-        <div class="dc-emoji">📝</div><div class="dc-t">Part5 문법</div><div class="dc-s">AI 문제</div>
+        <div class="dc-emoji ic-blue">${icon('doc','dc-ic')}</div><div class="dc-t">Part5 문법</div><div class="dc-s">AI 문제</div>
       </button>
       <button class="dash-card" onclick="switchTab('listen')">
-        <div class="dc-emoji">🎧</div><div class="dc-t">듣기 받아쓰기</div><div class="dc-s">청해 훈련</div>
+        <div class="dc-emoji ic-orange">${icon('headphones','dc-ic')}</div><div class="dc-t">듣기 받아쓰기</div><div class="dc-s">청해 훈련</div>
       </button>
       <button class="dash-card" onclick="switchTab('ai')">
-        <div class="dc-emoji">🤖</div><div class="dc-t">AI 약점분석</div><div class="dc-s">맞춤 진단</div>
+        <div class="dc-emoji ic-purple">${icon('sparkles','dc-ic')}</div><div class="dc-t">AI 약점분석</div><div class="dc-s">맞춤 진단</div>
       </button>
     </div>
 
@@ -461,7 +461,7 @@ function renderListen() {
     <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
     <div class="progress-text">${quiz.idx+1} / ${quiz.list.length}  ·  맞춤: ${quiz.score}</div>
     <div class="card">
-      <button class="big-speak" onclick="speak('${word.w}')">🔊</button>
+      <button class="big-speak" onclick="speak('${word.w}')">${icon('speaker','ic-big')}</button>
       <div class="hint">들리는 단어를 입력하세요</div>
       <div class="type-input-wrap">
         <input class="type-input" id="listen-input" placeholder="영어로 입력..." autocomplete="off" onkeydown="if(event.key==='Enter')checkListen()">
@@ -543,7 +543,7 @@ function checkGrammar(btn, chosen) {
   const fb = document.getElementById('fb');
   fb.className = 'feedback show ' + (ok ? 'correct' : 'wrong');
   fb.innerHTML = `<div class="fb-result">${ok?'✅ 정답!':'❌ 정답: '+item.answer}</div>
-    <div class="fb-example"><span class="fb-ex-en">💡 ${item.point||''}</span><span class="fb-ex-ko">${item.trans||''}</span></div>`;
+    <div class="fb-example"><span class="fb-ex-en">${icon('bulb')} ${item.point||''}</span><span class="fb-ex-ko">${item.trans||''}</span></div>`;
   document.getElementById('next-btn').classList.add('show');
 }
 function nextGrammar() { grammarQuiz.idx++; grammarQuiz.answered = false; renderGrammar(); }
@@ -556,9 +556,9 @@ function renderStats() {
   const days = last7days();
   const maxC = Math.max(1, ...days.map(d => d.count));
   area.innerHTML = `
-    <h2 style="font-size:1.1rem;font-weight:700;margin-bottom:16px;">📊 학습 통계</h2>
+    <h2 style="font-size:1.1rem;font-weight:700;margin-bottom:16px;">${icon('chart','ic-green')} 학습 통계</h2>
     <div class="stat-grid">
-      <div class="stat-cell"><div class="sc-num">🔥 ${st.streak||0}</div><div class="sc-lbl">연속 학습일</div></div>
+      <div class="stat-cell"><div class="sc-num">${icon('flame','ic-flame')} ${st.streak||0}</div><div class="sc-lbl">연속 학습일</div></div>
       <div class="stat-cell"><div class="sc-num">${sm.studied}</div><div class="sc-lbl">학습한 단어</div></div>
       <div class="stat-cell"><div class="sc-num">${sm.mastered}</div><div class="sc-lbl">숙달 단어</div></div>
       <div class="stat-cell"><div class="sc-num">${sm.due}</div><div class="sc-lbl">복습 대기</div></div>
@@ -591,4 +591,5 @@ function changeGoal(d) {
 }
 
 updateWrongBadge();
+hydrateIcons();
 renderDashboard();

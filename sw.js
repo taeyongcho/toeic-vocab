@@ -1,5 +1,5 @@
 // 앱 셸 캐시 (네트워크 우선 - 업데이트 즉시 반영, 오프라인은 캐시 폴백)
-const CACHE = 'toeic-voca-v3';
+const CACHE = 'toeic-voca-v4';
 const ASSETS = [
   './',
   './index.html',
@@ -7,6 +7,7 @@ const ASSETS = [
   './app.js',
   './ai.js',
   './srs.js',
+  './icons.js',
   './icon-192.png',
   './icon-512.png',
 ];

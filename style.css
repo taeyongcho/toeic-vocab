@@ -212,3 +212,29 @@ body { font-family: 'Segoe UI', 'Apple SD Gothic Neo', sans-serif; background: v
 .goal-setter button { width: 36px; height: 36px; border: none; background: var(--green); color: white; border-radius: 12px; font-size: 1.15rem; font-weight: 900; cursor: pointer; box-shadow: 0 3px 0 var(--green-dark); transition: all .08s; }
 .goal-setter button:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--green-dark); }
 .goal-setter b { font-size: 1.15rem; color: var(--green-dark); min-width: 28px; text-align: center; }
+
+/* ===== SVG 아이콘 ===== */
+.ic { width: 1.1em; height: 1.1em; vertical-align: -0.18em; display: inline-block; flex-shrink: 0; }
+.nav button { display: inline-flex; align-items: center; gap: 6px; }
+.nav button .ic { width: 1.15em; height: 1.15em; }
+.header-title { display: flex; align-items: center; gap: 12px; }
+.logo-badge { width: 44px; height: 44px; background: rgba(255,255,255,0.22); border-radius: 14px; display: flex; align-items: center; justify-content: center; }
+.logo-badge .ic { width: 26px; height: 26px; }
+.settings-btn { display: flex; align-items: center; justify-content: center; }
+.settings-btn .ic { width: 22px; height: 22px; }
+.speak-btn .ic { width: 1.05em; height: 1.05em; }
+.tip-btn { display: inline-flex; align-items: center; justify-content: center; color: #8a6d00; }
+.tip-btn .ic { width: 18px; height: 18px; }
+.big-speak { display: flex; align-items: center; justify-content: center; color: white; }
+.ic-big { width: 40px; height: 40px; }
+.ic-xl { width: 46px; height: 46px; }
+.dc-ic { width: 32px; height: 32px; }
+.dc-emoji { display: flex; justify-content: center; }
+.ic-green { color: var(--green-dark); }
+.ic-blue { color: var(--blue-dark); }
+.ic-orange { color: var(--orange); }
+.ic-purple { color: var(--purple); }
+.ic-flame { color: #ffd9a8; width: 1em; height: 1em; }
+.sc-num .ic-flame { color: var(--orange); }
+.streak-num { display: flex; align-items: center; gap: 6px; }
+.empty-state .icon { color: #cfc5ba; }
