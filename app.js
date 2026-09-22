@@ -53,11 +53,73 @@ const WORDS = [
 ];
 
 function speak(text) {
+  stopSpeak();
   const utter = new SpeechSynthesisUtterance(text);
   utter.lang = 'en-US';
   utter.rate = 0.9;
-  speechSynthesis.cancel();
   speechSynthesis.speak(utter);
+}
+
+// ===== 순차 재생(TTS 큐) + 화자 구분 =====
+let _speakToken = null;
+
+function stopSpeak() {
+  if (_speakToken) _speakToken.cancelled = true;
+  _speakToken = null;
+  speechSynthesis.cancel();
+}
+
+// items: [{text, voice, pitch, rate, gapMs, onStart}]
+function speakSeq(items, opts) {
+  stopSpeak();
+  const token = { cancelled: false };
+  _speakToken = token;
+  let i = 0;
+  (function next() {
+    if (token.cancelled) return;
+    if (i >= items.length) { opts && opts.onEnd && opts.onEnd(); return; }
+    const it = items[i++];
+    if (it.onStart) it.onStart();
+    const u = new SpeechSynthesisUtterance(it.text);
+    u.lang = (it.voice && it.voice.lang) || 'en-US';
+    u.rate = it.rate != null ? it.rate : 0.92;
+    u.pitch = it.pitch != null ? it.pitch : 1;
+    if (it.voice) u.voice = it.voice;
+
+    // end/error 중 먼저 오는 것만 처리. 둘 다 안 오면(TTS 미설치·크롬 중단 버그) 워치독으로 진행.
+    let settled = false;
+    const advance = delay => {
+      if (settled || token.cancelled) return;
+      settled = true;
+      setTimeout(next, delay);
+    };
+    u.onend = () => advance(it.gapMs != null ? it.gapMs : 500);
+    u.onerror = () => advance(200);
+    setTimeout(() => advance(100), 7000 + it.text.length * 100);
+
+    speechSynthesis.speak(u);
+  })();
+}
+
+let _enVoices = null;
+function enVoices() {
+  if (_enVoices && _enVoices.length) return _enVoices;
+  _enVoices = (speechSynthesis.getVoices() || []).filter(v => /^en[-_]/i.test(v.lang));
+  return _enVoices;
+}
+if (typeof speechSynthesis !== 'undefined') {
+  speechSynthesis.addEventListener('voiceschanged', () => { _enVoices = null; enVoices(); });
+}
+
+// 질문 화자 / 응답 화자를 다르게 (가능하면 다른 억양). 목소리가 하나뿐이면 음높이로 구분.
+function pickSpeakers() {
+  const v = enVoices();
+  if (v.length >= 2) {
+    const s = shuffle(v);
+    return [{ voice: s[0], pitch: 1 }, { voice: s[1], pitch: 1 }];
+  }
+  const only = v[0] || null;
+  return [{ voice: only, pitch: 1.12 }, { voice: only, pitch: 0.88 }];
 }
 
 let quiz = { mode:'', list:[], idx:0, score:0, answered:false };
@@ -85,6 +147,7 @@ function clearWrong() {
 }
 
 function switchTab(name) {
+  stopSpeak();
   document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.nav button').forEach(el => el.classList.remove('active'));
   const tab = document.getElementById('tab-'+name);
@@ -486,6 +549,172 @@ function checkListen() {
   document.getElementById('next-btn').classList.add('show');
 }
 function nextListen() { quiz.idx++; quiz.answered = false; renderListen(); }
+
+// ===== 듣기 모드 전환 =====
+function selectListenMode(mode) {
+  stopSpeak();
+  document.getElementById('lmode-dictation').classList.toggle('active', mode === 'dictation');
+  document.getElementById('lmode-part2').classList.toggle('active', mode === 'part2');
+  document.getElementById('listen-dictation').style.display = mode === 'dictation' ? '' : 'none';
+  document.getElementById('listen-part2').style.display = mode === 'part2' ? '' : 'none';
+}
+
+// ===== Part 2 질의응답 =====
+let p2 = { list: [], idx: 0, score: 0, answered: false, speakers: null };
+
+async function startPart2() {
+  if (typeof hasAIKey === 'function' && !hasAIKey()) { openSettings(); return; }
+  const area = document.getElementById('part2-area');
+  const n = parseInt(document.getElementById('p2-count').value);
+  area.innerHTML = '<div class="tip-loading">AI가 Part 2 문제를 만드는 중... (10초 정도)</div>';
+  try {
+    const qs = await aiPart2(n);
+    const valid = (qs || []).filter(x =>
+      x && typeof x.q === 'string' && Array.isArray(x.choices) &&
+      x.choices.length === 3 && Number(x.answer) >= 0 && Number(x.answer) <= 2
+    ).map(x => ({ ...x, answer: Number(x.answer) }));
+    if (!valid.length) { area.innerHTML = '<div class="tip-error">문제를 생성하지 못했어요. 다시 시도해주세요.</div>'; return; }
+    p2 = { list: valid, idx: 0, score: 0, answered: false, speakers: null };
+    renderPart2();
+  } catch (e) {
+    area.innerHTML = '<div class="tip-error">' + e.message + '</div>';
+  }
+}
+
+function renderPart2() {
+  const area = document.getElementById('part2-area');
+  if (p2.idx >= p2.list.length) {
+    const pct = Math.round(p2.score / p2.list.length * 100);
+    area.innerHTML = `<div class="result-card">
+      <div style="font-size:3rem;">${pct >= 80 ? '🎉' : pct >= 60 ? '👍' : '📖'}</div>
+      <div class="score">${p2.score} / ${p2.list.length}</div><p>정답률 ${pct}%</p>
+      <button onclick="startPart2()">새 문제</button></div>`;
+    return;
+  }
+  const item = p2.list[p2.idx];
+  const pct = Math.round((p2.idx / p2.list.length) * 100);
+  p2.speakers = pickSpeakers();
+  area.innerHTML = `
+    <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+    <div class="progress-text">${p2.idx + 1} / ${p2.list.length}  ·  맞춤: ${p2.score}</div>
+    <div class="card">
+      <div class="part-of-speech">Part 2 · 질의응답</div>
+      <button class="big-speak" id="p2-play" onclick="playPart2()">${icon('speaker', 'ic-big')}</button>
+      <div class="p2-now" id="p2-now">재생 중...</div>
+      <div class="hint">듣고 가장 알맞은 응답을 고르세요</div>
+      <div class="p2-choices">
+        <button class="p2-btn" onclick="checkPart2(0)">A</button>
+        <button class="p2-btn" onclick="checkPart2(1)">B</button>
+        <button class="p2-btn" onclick="checkPart2(2)">C</button>
+      </div>
+      <div class="feedback" id="fb"></div>
+      <button class="next-btn" id="next-btn" onclick="nextPart2()">다음 →</button>
+    </div>`;
+  setTimeout(playPart2, 250);
+}
+
+function playPart2() {
+  const item = p2.list[p2.idx];
+  if (!item) return;
+  const [qs, as] = p2.speakers || pickSpeakers();
+  const nowEl = document.getElementById('p2-now');
+  const btns = () => document.querySelectorAll('.p2-btn');
+  const mark = (label, idx) => {
+    if (nowEl) nowEl.textContent = label;
+    btns().forEach((b, i) => b.classList.toggle('playing', i === idx));
+  };
+
+  const seq = [{
+    text: item.q, voice: qs.voice, pitch: qs.pitch, gapMs: 800,
+    onStart: () => mark('질문 듣는 중', -1)
+  }];
+  item.choices.forEach((c, i) => {
+    seq.push({
+      text: c, voice: as.voice, pitch: as.pitch, gapMs: 650,
+      onStart: () => mark('보기 ' + 'ABC'[i], i)
+    });
+  });
+
+  speakSeq(seq, { onEnd: () => mark(p2.answered ? '' : '정답을 고르세요', -1) });
+}
+
+function checkPart2(i) {
+  if (p2.answered) return;
+  const item = p2.list[p2.idx];
+  p2.answered = true;
+  stopSpeak();
+
+  const btns = document.querySelectorAll('.p2-btn');
+  btns.forEach(b => { b.disabled = true; b.classList.remove('playing'); });
+  const ok = i === item.answer;
+  if (ok) { p2.score++; btns[i].classList.add('correct'); }
+  else {
+    btns[i].classList.add('wrong');
+    if (btns[item.answer]) btns[item.answer].classList.add('correct');
+  }
+  if (typeof statsAddStudied === 'function') statsAddStudied(1);
+
+  const nowEl = document.getElementById('p2-now');
+  if (nowEl) nowEl.textContent = '';
+
+  // 스크립트 공개 (AI 생성 텍스트라 DOM으로 안전하게 구성)
+  const fb = document.getElementById('fb');
+  fb.className = 'feedback show ' + (ok ? 'correct' : 'wrong');
+  fb.innerHTML = '';
+
+  const head = document.createElement('div');
+  head.className = 'fb-result';
+  head.textContent = ok ? '✅ 정답!' : '❌ 오답 — 정답: (' + 'ABC'[item.answer] + ')';
+  fb.appendChild(head);
+
+  const script = document.createElement('div');
+  script.className = 'p2-script';
+  const rows = [{ label: 'Q', text: item.q, tr: item.qTrans, isQ: true }];
+  item.choices.forEach((c, ci) => rows.push({
+    label: 'ABC'[ci], text: c, tr: (item.cTrans || [])[ci],
+    ok: ci === item.answer, picked: ci === i
+  }));
+  rows.forEach(r => {
+    const row = document.createElement('div');
+    row.className = 'p2-line' + (r.isQ ? ' q' : '') + (r.ok ? ' ok' : '') + (r.picked && !r.ok ? ' bad' : '');
+    const lab = document.createElement('b');
+    lab.className = 'p2-lab';
+    lab.textContent = r.label;
+    const body = document.createElement('div');
+    body.className = 'p2-body';
+    const en = document.createElement('div');
+    en.className = 'p2-en';
+    en.textContent = r.text + ' ';
+    const sp = document.createElement('button');
+    sp.className = 'speak-btn';
+    sp.innerHTML = icon('speaker');
+    sp.onclick = () => speak(r.text);
+    en.appendChild(sp);
+    const ko = document.createElement('div');
+    ko.className = 'p2-ko';
+    ko.textContent = r.tr || '';
+    body.append(en, ko);
+    row.append(lab, body);
+    script.appendChild(row);
+  });
+  fb.appendChild(script);
+
+  if (item.point) {
+    const pt = document.createElement('div');
+    pt.className = 'p2-point';
+    pt.textContent = (item.type ? '[' + item.type + '] ' : '') + item.point;
+    fb.appendChild(pt);
+  }
+
+  document.getElementById('next-btn').classList.add('show');
+}
+
+function nextPart2() {
+  stopSpeak();
+  p2.idx++;
+  p2.answered = false;
+  renderPart2();
+}
 
 // ===== Part5 문법 =====
 let grammarQuiz = { list:[], idx:0, score:0, answered:false };

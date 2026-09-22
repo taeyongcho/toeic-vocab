@@ -1,5 +1,5 @@
 // 앱 셸 캐시 (네트워크 우선 - 업데이트 즉시 반영, 오프라인은 캐시 폴백)
-const CACHE = 'toeic-voca-v4';
+const CACHE = 'toeic-voca-v5';
 const ASSETS = [
   './',
   './index.html',

@@ -238,3 +238,39 @@ body { font-family: 'Segoe UI', 'Apple SD Gothic Neo', sans-serif; background: v
 .sc-num .ic-flame { color: var(--orange); }
 .streak-num { display: flex; align-items: center; gap: 6px; }
 .empty-state .icon { color: #cfc5ba; }
+
+/* ===== 모드 전환 탭 ===== */
+.mode-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+.mode-tab { flex: 1; padding: 11px; border: 2px solid var(--line); border-bottom-width: 4px; border-radius: 14px; background: var(--card); color: var(--sub); font-size: 0.86rem; font-weight: 800; cursor: pointer; transition: all .12s; }
+.mode-tab.active { border-color: var(--green); background: #f0ffe4; color: var(--green-dark); }
+.mode-tab:active { transform: translateY(2px); border-bottom-width: 2px; }
+.mode-desc { font-size: 0.8rem; color: var(--sub); font-weight: 600; margin: 6px 2px 0; line-height: 1.5; }
+
+/* ===== Part 2 ===== */
+.p2-now { font-size: 0.8rem; font-weight: 800; color: var(--blue-dark); min-height: 1.2em; margin-bottom: 6px; letter-spacing: 0.2px; }
+.p2-choices { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; width: 100%; margin-top: 4px; }
+.p2-btn {
+  padding: 20px 0; border: 2px solid var(--line); border-bottom-width: 5px; border-radius: 16px;
+  background: var(--card); color: var(--ink); font-size: 1.4rem; font-weight: 900; cursor: pointer; transition: all .12s;
+}
+.p2-btn:hover:not(:disabled) { border-color: var(--blue); background: #eaf7ff; }
+.p2-btn:active:not(:disabled) { transform: translateY(3px); border-bottom-width: 2px; }
+.p2-btn:disabled { cursor: default; }
+.p2-btn.playing { border-color: var(--blue); background: #dcf0ff; color: var(--blue-dark); animation: p2pulse .7s ease-in-out infinite; }
+@keyframes p2pulse { 0%,100% { transform: none; } 50% { transform: scale(1.06); } }
+.p2-btn.correct { border-color: var(--green); background: #e8ffd6; color: var(--green-dark); animation: bounce .35s; }
+.p2-btn.wrong { border-color: var(--red); background: #ffe8e8; color: var(--red-dark); animation: shake .3s; }
+
+/* Part 2 스크립트 공개 */
+.p2-script { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
+.p2-line { display: flex; gap: 10px; padding: 9px 12px; background: rgba(255,255,255,0.75); border-radius: 12px; border-left: 4px solid transparent; }
+.p2-line.q { background: rgba(255,255,255,0.95); border-left-color: var(--blue); }
+.p2-line.ok { border-left-color: var(--green); background: #f2ffe8; }
+.p2-line.bad { border-left-color: var(--red); background: #fff0f0; }
+.p2-lab { flex: 0 0 18px; font-size: 0.85rem; font-weight: 900; color: var(--sub); }
+.p2-line.ok .p2-lab { color: var(--green-dark); }
+.p2-line.bad .p2-lab { color: var(--red-dark); }
+.p2-body { flex: 1; min-width: 0; }
+.p2-en { font-size: 0.88rem; font-weight: 700; color: var(--ink); line-height: 1.5; }
+.p2-ko { font-size: 0.78rem; color: var(--sub); font-weight: 600; margin-top: 2px; line-height: 1.5; }
+.p2-point { margin-top: 12px; padding: 11px 14px; background: #fff8e0; border: 2px solid #ffe49b; border-radius: 12px; font-size: 0.82rem; font-weight: 600; color: #7a5c00; line-height: 1.55; }

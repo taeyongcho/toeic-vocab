@@ -94,6 +94,26 @@ choices는 4개, 그럴듯한 오답 포함. JSON만 출력.`;
   return Array.isArray(arr) ? arr : [];
 }
 
+// ===== 기능 4: Part2 질의응답(LC) 문제 생성 =====
+async function aiPart2(n) {
+  const prompt = `토익 LC Part2(질의응답) 문제 ${n}개를 만들어주세요.
+
+규칙:
+- 질문(또는 평서문) 1개 + 응답 3개(A,B,C). 정답 1개, 오답 2개.
+- 실제 토익처럼 비즈니스/사무 상황 (회의, 일정, 배송, 출장, 사무기기, 인사 등)
+- 오답은 전형적 함정: 유사발음, 의문사에 안 맞는 응답(When인데 장소 답), 의문사 의문문에 Yes/No 응답, 연상어휘
+- 구어체로 짧게 — 질문 8~14단어, 응답 3~10단어
+- 유형 다양하게: When/Where/Who/Why/How/What 의문사, 일반의문문, 부정의문문, 선택의문문, 평서문, 부가의문문
+
+JSON 배열로만 출력:
+[{"q":"영어 질문","choices":["응답A","응답B","응답C"],"answer":0,"qTrans":"질문 한국어 해석","cTrans":["A 해석","B 해석","C 해석"],"type":"유형(예: When 의문문)","point":"정답 근거와 오답 함정 설명(한국어 1~2줄)"}]
+
+answer는 정답 인덱스 숫자(0,1,2). 정답 위치는 골고루 섞으세요. JSON만 출력.`;
+  const text = await callAI(prompt, 3000);
+  const arr = extractJSON(text);
+  return Array.isArray(arr) ? arr : [];
+}
+
 // ===== 기능 2: 오답 분석 + 맞춤 추천 =====
 async function aiAnalyze(wrongList, pool) {
   const poolWords = pool.map(w => w.w);

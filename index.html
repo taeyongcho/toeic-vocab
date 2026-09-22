@@ -60,18 +60,37 @@
     <div id="word-area"></div>
   </div>
 
-  <!-- 듣기(받아쓰기) -->
+  <!-- 듣기 -->
   <div id="tab-listen" class="tab-content">
-    <div class="quiz-controls">
-      <select id="listen-count">
-        <option value="10" selected>10문제</option>
-        <option value="20">20문제</option>
-        <option value="30">30문제</option>
-      </select>
-      <button onclick="startListen()">시작</button>
+    <div class="mode-tabs">
+      <button id="lmode-dictation" class="mode-tab active" onclick="selectListenMode('dictation')">단어 받아쓰기</button>
+      <button id="lmode-part2" class="mode-tab" onclick="selectListenMode('part2')">Part 2 실전</button>
     </div>
-    <p style="font-size:0.82rem;color:#6b7280;margin-top:4px;">🔊 발음을 듣고 단어를 입력하세요. (오프라인 가능)</p>
-    <div id="listen-area"></div>
+
+    <div id="listen-dictation">
+      <div class="quiz-controls">
+        <select id="listen-count">
+          <option value="10" selected>10문제</option>
+          <option value="20">20문제</option>
+          <option value="30">30문제</option>
+        </select>
+        <button onclick="startListen()">시작</button>
+      </div>
+      <p class="mode-desc">발음을 듣고 단어를 입력하세요. (오프라인 가능)</p>
+      <div id="listen-area"></div>
+    </div>
+
+    <div id="listen-part2" style="display:none;">
+      <div class="quiz-controls">
+        <select id="p2-count">
+          <option value="5" selected>5문제</option>
+          <option value="10">10문제</option>
+        </select>
+        <button class="ai-btn" onclick="startPart2()">문제 생성</button>
+      </div>
+      <p class="mode-desc">질문과 응답 A·B·C를 듣고 알맞은 답을 고르세요. 화자가 바뀌며, 재생 중인 보기가 표시됩니다. (AI 키 필요)</p>
+      <div id="part2-area"></div>
+    </div>
   </div>
 
   <!-- 문법 Part5 -->
